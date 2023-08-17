@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <title>RTL - Real Time Location</title>
+    <style>
+        /* Estilos gerais */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        /* Estilos para o cabeçalho */
+        #header {
+            background-color: #0099cc;
+            padding: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #header .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        #header .logo {
+            width: 30px;
+            height: 30px;
+            margin-right: 5px;
+            border-radius: 50%;
+        }
+
+        #header h1 {
+            font-size: 10px;
+            margin: 0;
+            color: #fff;
+        }
+
+        /* Estilos para a barra de pesquisa e rota */
+        #search-route-bar {
+            background-color: #fff;
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        #search-route-bar input[type="text"] {
+            width: 48%;
+            padding: 15px;
+            font-size: 15px;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, .3);
+        }
+
+        #search-route-bar button {
+            padding: 10px 15px;
+            font-size: 14px;
+            background-color: #0099cc;
+            color: #fff;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        /* Estilos para o mapa */
+        #map {
+            height: 95vh;
+            width: 100%;
+        }
+
+        /* Estilos para a barra de navegação */
+        #navigation-bar {
+            background-color: #0099cc;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .dropdown {
+            position: relative;
+        }
+
+        .menu {
+            margin: 5px;
+            padding: 5px 10px;
+            font-size: 16px;
+            background-color: #0099cc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .submenu {
+            display: none;
+            position: absolute;
+            background-color: #0099cc;
+            z-index: 1;
+            min-width: 120px;
+        }
+
+        .submenu a {
+            display: block;
+            padding: 5px 10px;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .submenu.show {
+            display: block;
+        }
+
+        /* Estilos para o rodapé */
+        footer {
+            background-color: #0099cc;
+            padding: 10px;
+            text-align: center;
+            color: #fff;
+        }
+
+        footer a {
+            color: #fff;
+            text-decoration: none;
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBf2a8jJFDPp9gPOzdi9tirTZKomFjTmZc&callback=initMap"  async defer></script>
+    <script>
+        var map;
+        var markers = [];
+        var directionsService;
+        var directionsDisplay;
+        var activeFormId = '';
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 38.71, lng: -9.133 },
+                zoom: 2,
+                maxZoom: 21,
+                minZoom: 3,
+            });
+
+            directionsService = new google.maps.DirectionsService();
+            directionsDisplay = new google.maps.DirectionsRenderer();
+            directionsDisplay.setMap(map);
+        }
+
+        function searchAddress() {
+            var address = document.getElementById('search-input').value;
+            var geocoder = new google.maps.Geocoder();
+
+            geocoder.geocode({ address: address }, function (results, status) {
+                if (status === google.maps.GeocoderStatus.OK) {
+                    var location = results[0].geometry.location;
+                    map.setCenter(location);
+                    clearMarkers();
+                    var marker = new google.maps.Marker({
+                        map: map,
+                        position: location,
+                        title: address
+                    });
+                    markers.push(marker);
+                } else {
+                    alert('Não foi possível encontrar o endereço.');
+                }
+            });
+        }
+
+        function clearMarkers() {
+            markers.forEach(function (marker) {
+                marker.setMap(null);
+            });
+            markers = [];
+        }
+
+        function toggleSubmenu() {
+            var submenu = document.getElementById('submenu');
+            submenu.classList.toggle('show');
+        }
+
+        function calculateRoute(event) {
+            event.preventDefault();
+            var start = document.getElementById('origin-input').value;
+            var end = document.getElementById('destination-input').value;
+
+            var request = {
+                origin: start,
+                destination: end,
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+
+            directionsService.route(request, function (result, status) {
+                if (status === google.maps.DirectionsStatus.OK) {
+                    directionsDisplay.setDirections(result);
+                } else {
+                    alert('Não foi possível calcular a rota.');
+                }
+            });
+        }
+
+        function redirectToRegister() {
+            window.location.href = 'RTL.HTML.Registo.html';
+        }
+
+        function redirectToLogin() {
+            window.location.href = 'HTML.RTL.Entrar.html';
+        }
+
+        function checkAuthentication(event, target) {
+            event.preventDefault();
+            // Aqui você deve adicionar sua lógica de verificação de autenticação.
+            // Vou adicionar um exemplo simples que redireciona para a página de registro caso o usuário não esteja autenticado.
+            var isAuthenticated = false; // Altere para sua lógica de autenticação real
+
+            if (isAuthenticated) {
+                window.location.href = target;
+            } else {
+                redirectToRegister();
+            }
+        }
+    
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <header id="header">
+        <div class="logo-container">
+            <img src="RTL.png" alt="Logo da RTL" class="logo">
+            <h1>RTL</h1>
+        </div>
+    </header>
+
+    <div id="search-route-bar">
+        <form id="route-form" onsubmit="calculateRoute(event)">
+            <input type="text" id="origin-input" placeholder="Origem">
+            <input type="text" id="destination-input" placeholder="Destino">
+            <button type="submit">Calcular Rota</button>
+        </form>
+        <div id="search-bar">
+            <input type="text" id="search-input" placeholder="Pesquisar" style="width: 30%;">
+            <button onclick="searchAddress()">Pesquisar</button>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <nav id="navigation-bar">
+        <div class="dropdown">
+            <button class="menu" onclick="toggleSubmenu()">Menu</button>
+            <div class="submenu" id="submenu">
+                <a href="#" onclick="checkAuthentication(event, 'HTML.RTL.Historico de localização.html')">Histórico</a>
+                <a href="#" onclick="checkAuthentication(event, 'HTML.RTL.Perfil.html')">Perfil</a>
+            </div>
+        </div>
+        <a href="#" onclick="redirectToRegister()" class="menu">Registo</a>
+        <a href="#" onclick="redirectToLogin()" class="menu">Entrar</a>
+    </nav>
+
+    <footer>
+        <p>RTL - Real Time Location &copy; 2023. Todos os direitos reservados.</p>
+    </footer>
+</body>
+
+</html>
+
